@@ -6,6 +6,10 @@ This project predicts whether a company is likely to go bankrupt using machine l
 An interactive web dashboard was developed using Streamlit to allow users to input company risk factors and receive real-time predictions.
 
 ---
+## Live Demo
+
+Streamlit App:
+https://bankruptcy-prediction-ml-app.streamlit.app
 
 ## Features
 - Machine Learning classification models
@@ -50,6 +54,22 @@ The model uses the following features:
 - Plotly
 - Matplotlib
 
+## Project Structure
+bankruptcy-prediction-ml-app
+│
+├── app.py                     # Streamlit web application
+├── model.pkl                  # Trained ML model
+├── columns.pkl                # Feature column order
+├── bankruptcy_analysis.ipynb  # Jupyter notebook (model training)
+├── requirements.txt           # Python dependencies
+├── README.md                  # Project documentation
+│
+├── images/                    # Screenshots for README
+│   ├── dashboard.png
+│   ├── prediction.png
+│   └── gauge_chart.png
+│
+└── data/
+    └── bankruptcy_data.csv    # Dataset used for training (optional)
 ---
 
-## Project Structure
