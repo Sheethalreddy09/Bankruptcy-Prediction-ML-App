@@ -55,21 +55,21 @@ The model uses the following features:
 - Matplotlib
 
 ## Project Structure
-bankruptcy-prediction-ml-app
+- bankruptcy-prediction-ml-app
 │
-├── app.py                     # Streamlit web application
-├── model.pkl                  # Trained ML model
-├── columns.pkl                # Feature column order
-├── bankruptcy_analysis.ipynb  # Jupyter notebook (model training)
-├── requirements.txt           # Python dependencies
-├── README.md                  # Project documentation
+├── app.py # Streamlit web application
+├── model.pkl # Trained Machine Learning model
+├── columns.pkl # Feature column order used during training
+├── bankruptcy_analysis.ipynb # Jupyter Notebook (EDA + Model Training)
+├── requirements.txt # Python dependencies for deployment
+├── README.md # Project documentation
 │
-├── images/                    # Screenshots for README
-│   ├── dashboard.png
-│   ├── prediction.png
-│   └── gauge_chart.png
+├── images/ # Screenshots of the Streamlit dashboard
+│ ├── dashboard.png
+│ ├── prediction.png
+│ └── risk_meter.png
 │
 └── data/
-    └── bankruptcy_data.csv    # Dataset used for training (optional)
+└── bankruptcy_data.csv # Dataset used for training
 ---
 
