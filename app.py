@@ -1,11 +1,11 @@
 import streamlit as st
 import pickle
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 import matplotlib.pyplot as plt
-import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # -----------------------------
 # PAGE CONFIG
@@ -13,9 +13,9 @@ from datetime import datetime
 st.set_page_config(page_title="AI Bankruptcy Dashboard", layout="wide")
 
 # -----------------------------
-# DARK MODE TOGGLE
+# DARK MODE
 # -----------------------------
-dark_mode = st.sidebar.toggle("🌙 Dark Mode", value=False)
+dark_mode = st.sidebar.toggle("Dark Mode", value=False)
 
 if dark_mode:
     bg = "#0e1117"
@@ -27,7 +27,7 @@ else:
     text = "#2c3e50"
 
 # -----------------------------
-# GLOBAL STYLES
+# GLOBAL STYLE
 # -----------------------------
 st.markdown(f"""
 <style>
@@ -94,7 +94,7 @@ columns = pickle.load(open("columns.pkl","rb"))
 # -----------------------------
 # SIDEBAR INPUT
 # -----------------------------
-st.sidebar.header("Risk Factors")
+st.sidebar.header("Company Risk Factors")
 
 industrial_risk = st.sidebar.selectbox("Industrial Risk",[0,1])
 management_risk = st.sidebar.selectbox("Management Risk",[0,1])
@@ -108,10 +108,10 @@ predict = st.sidebar.button("Predict Risk")
 # -----------------------------
 # TABS
 # -----------------------------
-tab1,tab2,tab3 = st.tabs(["📊 Dashboard","🤖 Model","📁 Data"])
+tab1,tab2,tab3 = st.tabs(["Dashboard","Model","Data"])
 
 # -----------------------------
-# DASHBOARD TAB
+# DASHBOARD
 # -----------------------------
 with tab1:
 
@@ -129,9 +129,9 @@ with tab1:
         probability = model.predict_proba(input_data)[0][1]
 
         # METRIC CARDS
-        c1,c2,c3 = st.columns(3)
+        col1,col2,col3 = st.columns(3)
 
-        with c1:
+        with col1:
             st.markdown(f"""
             <div class="metric-card">
             <h4>Bankruptcy Probability</h4>
@@ -139,7 +139,7 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
 
-        with c2:
+        with col2:
             risk_level = "HIGH" if probability > 0.6 else "LOW"
             st.markdown(f"""
             <div class="metric-card">
@@ -148,7 +148,7 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
 
-        with c3:
+        with col3:
             confidence = round((1-abs(0.5-probability))*100,2)
             st.markdown(f"""
             <div class="metric-card">
@@ -161,13 +161,15 @@ with tab1:
 
         # RESULT
         if prediction[0] == 1:
-            st.markdown('<div class="result-risk">⚠ High Bankruptcy Risk</div>', unsafe_allow_html=True)
+            st.markdown('<div class="result-risk">High Bankruptcy Risk</div>', unsafe_allow_html=True)
         else:
-            st.markdown('<div class="result-safe">✅ Company Financially Safe</div>', unsafe_allow_html=True)
+            st.markdown('<div class="result-safe">Company Financially Safe</div>', unsafe_allow_html=True)
 
         st.write("")
 
+        # -----------------------------
         # GAUGE
+        # -----------------------------
         gauge = go.Figure(go.Indicator(
             mode="gauge+number",
             value=probability*100,
@@ -184,69 +186,104 @@ with tab1:
             }
         ))
 
+        # -----------------------------
         # FEATURE IMPORTANCE
+        # -----------------------------
         try:
             importance = model.coef_[0]
             fig,ax = plt.subplots()
             ax.barh(columns,importance)
             ax.set_title("Feature Importance")
         except:
-            fig=None
+            fig = None
 
-        colA,colB = st.columns(2)
+        left,right = st.columns(2)
 
-        with colA:
+        with left:
             st.plotly_chart(gauge,use_container_width=True)
 
-        with colB:
+        with right:
             if fig:
                 st.pyplot(fig)
 
-        # RISK TREND CHART
-        st.subheader("Risk Trend Simulation")
+        # -----------------------------
+        # RISK FORECAST
+        # -----------------------------
+        st.subheader("Risk Forecast")
 
-        trend = np.clip(np.random.normal(probability,0.1,10),0,1)
+        months = 12
+        dates = [datetime.today() + timedelta(days=30*i) for i in range(months)]
 
-        trend_df = pd.DataFrame({
-            "Step":range(1,11),
-            "Risk":trend*100
+        steps = np.linspace(-0.1,0.1,months)
+        forecast = np.clip(probability + steps,0,1)
+
+        forecast_df = pd.DataFrame({
+            "Date": dates,
+            "Predicted Risk": forecast * 100
         })
 
-        trend_chart = px.line(trend_df,x="Step",y="Risk",
-                              markers=True,
-                              title="Simulated Risk Trend")
+        forecast_chart = px.line(
+            forecast_df,
+            x="Date",
+            y="Predicted Risk",
+            markers=True,
+            title="Bankruptcy Risk Forecast"
+        )
 
-        st.plotly_chart(trend_chart,use_container_width=True)
+        st.plotly_chart(forecast_chart,use_container_width=True)
+
+        # -----------------------------
+        # AI EXPLANATION
+        # -----------------------------
+        st.subheader("AI Explanation")
+
+        risks = []
+
+        for name,val in zip(columns,input_data.values[0]):
+            if val == 1:
+                risks.append(name)
+
+        if risks:
+            st.write("Main risk factors detected:")
+            for r in risks:
+                st.write("•",r.replace("_"," ").title())
+        else:
+            st.write("No major risk factors detected")
+
+        # -----------------------------
+        # DOWNLOAD REPORT
+        # -----------------------------
+        st.download_button(
+            "Download Prediction Report",
+            input_data.to_csv(),
+            "prediction_report.csv"
+        )
 
 # -----------------------------
 # MODEL TAB
 # -----------------------------
 with tab2:
 
-    st.subheader("Model Information")
+    st.subheader("Model Details")
 
-    st.write("Algorithm used for prediction:")
-    st.write("• Logistic Regression")
+    st.write("Algorithm: Logistic Regression")
 
     st.write("Libraries used:")
     st.write("""
-    - Python  
-    - Pandas / NumPy  
-    - Scikit-learn  
-    - Plotly  
+    - Python
+    - Pandas
+    - NumPy
+    - Scikit-learn
     - Streamlit
+    - Plotly
     """)
-
-    st.write("Features used by the model:")
-    for c in columns:
-        st.write("•",c.replace("_"," ").title())
 
 # -----------------------------
 # DATA TAB
 # -----------------------------
 with tab3:
 
-    st.subheader("Sample Input Data")
+    st.subheader("Input Data")
 
     sample = pd.DataFrame({
         "Industrial Risk":[industrial_risk],
