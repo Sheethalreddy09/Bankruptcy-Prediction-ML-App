@@ -284,14 +284,25 @@ if predict:
         for r in recs:
             st.write("•",r)
 
+#CREATE REPORT DATA
+
+report_df = input_data.copy()
+
+report_df["Bankruptcy Risk (%)"] = round(risk_percent, 2)
+report_df["Risk Classification"] = risk_class
+report_df["Model Prediction"] = pred_label
+report_df["Selected Model"] = model_choice
+
 # --------------------------------------------------
 # DOWNLOAD REPORT
 # --------------------------------------------------
-    st.download_button(
-    "📄 Download Risk Report",
-    input_data.to_csv(),
-    "bankruptcy_risk_report.csv"
-    )
+
+st.download_button(
+"📄 Download Risk Report",
+report_df.to_csv(index=False),
+"bankruptcy_risk_report.csv",
+"Download prediction results as CSV"
+)
 
 # --------------------------------------------------
 # FOOTER
