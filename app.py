@@ -40,7 +40,7 @@ border:none;
 """, unsafe_allow_html=True)
 
 /* particle layer */
-#particles-js{
+particles-js{
 position:fixed;
 width:100%;
 height:100%;
