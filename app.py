@@ -2,69 +2,99 @@ import streamlit as st
 import pickle
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.express as px
 import matplotlib.pyplot as plt
 import numpy as np
+from datetime import datetime
 
-# Load model
-model = pickle.load(open("model.pkl","rb"))
-columns = pickle.load(open("columns.pkl","rb"))
+# -----------------------------
+# PAGE CONFIG
+# -----------------------------
+st.set_page_config(page_title="AI Bankruptcy Dashboard", layout="wide")
 
-st.set_page_config(page_title="Bankruptcy Prediction",layout="wide")
+# -----------------------------
+# DARK MODE TOGGLE
+# -----------------------------
+dark_mode = st.sidebar.toggle("🌙 Dark Mode", value=False)
 
-# ---------- CLEAN UI ----------
-st.markdown("""
+if dark_mode:
+    bg = "#0e1117"
+    card = "#1f2937"
+    text = "#e5e7eb"
+else:
+    bg = "linear-gradient(135deg,#eef2f3,#dfe9f3)"
+    card = "white"
+    text = "#2c3e50"
+
+# -----------------------------
+# GLOBAL STYLES
+# -----------------------------
+st.markdown(f"""
 <style>
-.stApp{
-background: linear-gradient(135deg,#eef2f3,#dfe9f3);
-}
 
-.title{
-text-align:center;
+.stApp {{
+background:{bg};
+color:{text};
+}}
+
+.main-title {{
 font-size:42px;
-font-weight:bold;
-color:#333;
-}
-
-.subtitle{
+font-weight:700;
 text-align:center;
-color:#666;
-}
+margin-bottom:10px;
+}}
 
-.card{
-background:white;
-padding:25px;
-border-radius:12px;
-box-shadow:0 6px 20px rgba(0,0,0,0.15);
-}
+.metric-card {{
+background:{card};
+padding:18px;
+border-radius:14px;
+box-shadow:0px 6px 18px rgba(0,0,0,0.15);
+text-align:center;
+animation: fadeIn 0.7s ease-in;
+}}
 
-.safe{
+@keyframes fadeIn {{
+0% {{opacity:0; transform:translateY(10px);}}
+100% {{opacity:1; transform:translateY(0);}}
+}}
+
+.result-safe {{
 background:#e8f5e9;
-padding:15px;
+padding:18px;
 border-radius:10px;
+font-weight:600;
 color:#2e7d32;
-font-weight:bold;
 text-align:center;
-}
+}}
 
-.risk{
+.result-risk {{
 background:#ffebee;
-padding:15px;
+padding:18px;
 border-radius:10px;
+font-weight:600;
 color:#c62828;
-font-weight:bold;
 text-align:center;
-}
+}}
+
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- TITLE ----------
-st.markdown('<p class="title">Bankruptcy Prediction Dashboard</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Machine Learning model predicting company financial risk</p>', unsafe_allow_html=True)
+# -----------------------------
+# TITLE
+# -----------------------------
+st.markdown('<p class="main-title">AI Bankruptcy Risk Dashboard</p>', unsafe_allow_html=True)
+st.caption("Machine Learning system predicting company financial risk")
 
-st.write("")
+# -----------------------------
+# LOAD MODEL
+# -----------------------------
+model = pickle.load(open("model.pkl","rb"))
+columns = pickle.load(open("columns.pkl","rb"))
 
-# ---------- SIDEBAR INPUT ----------
-st.sidebar.header("Company Risk Factors")
+# -----------------------------
+# SIDEBAR INPUT
+# -----------------------------
+st.sidebar.header("Risk Factors")
 
 industrial_risk = st.sidebar.selectbox("Industrial Risk",[0,1])
 management_risk = st.sidebar.selectbox("Management Risk",[0,1])
@@ -73,113 +103,161 @@ credibility = st.sidebar.selectbox("Credibility",[0,1])
 competitiveness = st.sidebar.selectbox("Competitiveness",[0,1])
 operating_risk = st.sidebar.selectbox("Operating Risk",[0,1])
 
-predict_button = st.sidebar.button("Predict Bankruptcy Risk")
+predict = st.sidebar.button("Predict Risk")
 
-# ---------- MODEL ACCURACY ----------
-st.sidebar.markdown("### Model Accuracy")
-st.sidebar.write("Logistic Regression : 100%")
-st.sidebar.write("Random Forest : 100%")
-st.sidebar.write("SVM : 100%")
+# -----------------------------
+# TABS
+# -----------------------------
+tab1,tab2,tab3 = st.tabs(["📊 Dashboard","🤖 Model","📁 Data"])
 
-# ---------- PREDICTION ----------
-if predict_button:
+# -----------------------------
+# DASHBOARD TAB
+# -----------------------------
+with tab1:
 
-    input_data = pd.DataFrame([[industrial_risk,
-                                management_risk,
-                                financial_flexibility,
-                                credibility,
-                                competitiveness,
-                                operating_risk]],
-                                columns=columns)
+    if predict:
 
-    prediction = model.predict(input_data)
-    probability = model.predict_proba(input_data)[0][1]
+        input_data = pd.DataFrame([[industrial_risk,
+                                    management_risk,
+                                    financial_flexibility,
+                                    credibility,
+                                    competitiveness,
+                                    operating_risk]],
+                                    columns=columns)
 
-    col1,col2,col3 = st.columns(3)
+        prediction = model.predict(input_data)
+        probability = model.predict_proba(input_data)[0][1]
 
-    # ---------- METRICS ----------
-    col1.metric("Bankruptcy Probability", str(round(probability*100,2))+"%")
+        # METRIC CARDS
+        c1,c2,c3 = st.columns(3)
 
-    col2.metric("Risk Level",
-                "HIGH RISK" if probability>0.6 else "LOW RISK")
+        with c1:
+            st.markdown(f"""
+            <div class="metric-card">
+            <h4>Bankruptcy Probability</h4>
+            <h2>{round(probability*100,2)}%</h2>
+            </div>
+            """, unsafe_allow_html=True)
 
-    col3.metric("Model Confidence",
-                str(round((1-abs(0.5-probability))*100,2))+"%")
+        with c2:
+            risk_level = "HIGH" if probability > 0.6 else "LOW"
+            st.markdown(f"""
+            <div class="metric-card">
+            <h4>Risk Level</h4>
+            <h2>{risk_level}</h2>
+            </div>
+            """, unsafe_allow_html=True)
 
-    st.write("")
+        with c3:
+            confidence = round((1-abs(0.5-probability))*100,2)
+            st.markdown(f"""
+            <div class="metric-card">
+            <h4>Model Confidence</h4>
+            <h2>{confidence}%</h2>
+            </div>
+            """, unsafe_allow_html=True)
 
-    # ---------- RESULT ----------
-    if prediction[0] == 1:
-        st.markdown('<div class="risk">⚠ Company is likely to go BANKRUPT</div>', unsafe_allow_html=True)
-    else:
-        st.markdown('<div class="safe">✅ Company is FINANCIALLY SAFE</div>', unsafe_allow_html=True)
+        st.write("")
 
-    st.write("")
+        # RESULT
+        if prediction[0] == 1:
+            st.markdown('<div class="result-risk">⚠ High Bankruptcy Risk</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="result-safe">✅ Company Financially Safe</div>', unsafe_allow_html=True)
 
-    # ---------- GAUGE CHART ----------
-    gauge = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=probability*100,
-        title={'text':"Bankruptcy Risk Meter"},
-        gauge={
-            'axis':{'range':[0,100]},
-            'bar':{'color':"red"},
-            'steps':[
-                {'range':[0,40],'color':"green"},
-                {'range':[40,70],'color':"yellow"},
-                {'range':[70,100],'color':"red"}
-            ]
-        }
-    ))
+        st.write("")
 
-    st.plotly_chart(gauge,use_container_width=True)
+        # GAUGE
+        gauge = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=probability*100,
+            number={'suffix': "%"},
+            title={'text': "Risk Meter"},
+            gauge={
+                'axis': {'range':[0,100]},
+                'bar':{'color':"#34495e"},
+                'steps':[
+                    {'range':[0,40],'color':"#2ecc71"},
+                    {'range':[40,70],'color':"#f1c40f"},
+                    {'range':[70,100],'color':"#e74c3c"}
+                ]
+            }
+        ))
 
-    # ---------- FEATURE IMPORTANCE ----------
-    st.write("### Feature Importance")
+        # FEATURE IMPORTANCE
+        try:
+            importance = model.coef_[0]
+            fig,ax = plt.subplots()
+            ax.barh(columns,importance)
+            ax.set_title("Feature Importance")
+        except:
+            fig=None
 
-    try:
+        colA,colB = st.columns(2)
 
-        importance = model.coef_[0]
+        with colA:
+            st.plotly_chart(gauge,use_container_width=True)
 
-        fig,ax = plt.subplots()
+        with colB:
+            if fig:
+                st.pyplot(fig)
 
-        ax.barh(columns,importance)
-        ax.set_xlabel("Impact")
-        ax.set_title("Feature Impact on Bankruptcy")
+        # RISK TREND CHART
+        st.subheader("Risk Trend Simulation")
 
-        st.pyplot(fig)
+        trend = np.clip(np.random.normal(probability,0.1,10),0,1)
 
-    except:
-        st.info("Feature importance not available for this model")
+        trend_df = pd.DataFrame({
+            "Step":range(1,11),
+            "Risk":trend*100
+        })
 
-    # ---------- AI EXPLANATION ----------
-    st.write("### AI Explanation")
+        trend_chart = px.line(trend_df,x="Step",y="Risk",
+                              markers=True,
+                              title="Simulated Risk Trend")
 
-    explanation = []
+        st.plotly_chart(trend_chart,use_container_width=True)
 
-    values = [industrial_risk,
-              management_risk,
-              financial_flexibility,
-              credibility,
-              competitiveness,
-              operating_risk]
+# -----------------------------
+# MODEL TAB
+# -----------------------------
+with tab2:
 
-    for name,value in zip(columns,values):
+    st.subheader("Model Information")
 
-        if value==1:
-            explanation.append(name.replace("_"," ").title())
+    st.write("Algorithm used for prediction:")
+    st.write("• Logistic Regression")
 
-    if len(explanation)>0:
+    st.write("Libraries used:")
+    st.write("""
+    - Python  
+    - Pandas / NumPy  
+    - Scikit-learn  
+    - Plotly  
+    - Streamlit
+    """)
 
-        st.write("Risk factors detected:")
+    st.write("Features used by the model:")
+    for c in columns:
+        st.write("•",c.replace("_"," ").title())
 
-        for item in explanation:
-            st.write("•",item)
+# -----------------------------
+# DATA TAB
+# -----------------------------
+with tab3:
 
-    else:
+    st.subheader("Sample Input Data")
 
-        st.write("No major risk factors detected")
+    sample = pd.DataFrame({
+        "Industrial Risk":[industrial_risk],
+        "Management Risk":[management_risk],
+        "Financial Flexibility":[financial_flexibility],
+        "Credibility":[credibility],
+        "Competitiveness":[competitiveness],
+        "Operating Risk":[operating_risk]
+    })
 
+    st.dataframe(sample)
 # ---------- FOOTER ----------
 st.write("---")
 st.caption("Developed using Machine Learning and Streamlit")
