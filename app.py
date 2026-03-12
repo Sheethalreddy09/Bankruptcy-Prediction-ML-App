@@ -162,6 +162,27 @@ if predict:
 
     risk_percent = probability * 100
 
+    # --------------------------------------------------
+    # CREATE REPORT DATA
+    # --------------------------------------------------
+
+    report_df = input_data.copy()
+
+    report_df["Bankruptcy Risk (%)"] = round(risk_percent, 2)
+    report_df["Risk Classification"] = risk_class
+    report_df["Model Prediction"] = pred_label
+    report_df["Selected Model"] = model_choice
+
+    # --------------------------------------------------
+    # DOWNLOAD REPORT
+    # --------------------------------------------------
+
+    st.download_button(
+        "📄 Download Risk Report",
+        report_df.to_csv(index=False),
+        "bankruptcy_risk_report.csv"
+    )
+
     if risk_percent < 40:
         risk_class="LOW RISK"
         pred_label="✅ Safe"
