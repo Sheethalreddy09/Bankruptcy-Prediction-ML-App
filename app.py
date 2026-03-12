@@ -27,15 +27,27 @@ background: radial-gradient(circle at top,#0f2027,#203a43,#2c5364);
 color:white;
 }
 
-.stDownloadButton button{
-background-color:#00f2fe;
-color:black;
-font-weight:bold;
-border-radius:10px;
-padding:10px 20px;
-border:none;
+st.markdown("""
+<style>
+
+/* Fix download button visibility */
+
+.stDownloadButton button {
+    background-color:#00f2fe;
+    color:black;
+    font-weight:bold;
+    border-radius:10px;
+    padding:10px 20px;
+    border:none;
 }
 
+.stDownloadButton button:hover {
+    background-color:#4facfe;
+    color:black;
+}
+
+</style>
+""", unsafe_allow_html=True)
 </style>
 """, unsafe_allow_html=True)
 
