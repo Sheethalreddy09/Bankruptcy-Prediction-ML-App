@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
+import time
 
 # ==============================
 # PAGE CONFIG
@@ -25,6 +26,26 @@ st.markdown("""
 background: radial-gradient(circle at top,#0f2027,#203a43,#2c5364);
 color:white;
 }
+
+st.markdown("""
+<style>
+
+.stDownloadButton button{
+background-color:#00f2fe;
+color:black;
+font-weight:bold;
+border-radius:10px;
+padding:10px 20px;
+border:none;
+}
+
+.stDownloadButton button:hover{
+background-color:#4facfe;
+color:black;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 /* particle layer */
 #particles-js{
@@ -175,18 +196,22 @@ st.caption("AI-powered financial risk intelligence system")
 # ==============================
 if predict:
 
-    input_data = pd.DataFrame([[
-    risk_levels[industrial_risk],
-    risk_levels[management_risk],
-    risk_levels[financial_flexibility],
-    risk_levels[credibility],
-    risk_levels[competitiveness],
-    risk_levels[operating_risk]
-    ]], columns=columns)
+    with st.spinner("🧠 AI analyzing financial risk..."):
 
-    prediction = model.predict(input_data)
-    probability = model.predict_proba(input_data)[0][1]
-    risk_percent = probability * 100
+        time.sleep(1.5)  # small delay for animation
+
+        input_data = pd.DataFrame([[
+        risk_levels[industrial_risk],
+        risk_levels[management_risk],
+        risk_levels[financial_flexibility],
+        risk_levels[credibility],
+        risk_levels[competitiveness],
+        risk_levels[operating_risk]
+        ]], columns=columns)
+
+        prediction = model.predict(input_data)
+        probability = model.predict_proba(input_data)[0][1]
+     st.success("🤖 AI Analysis Complete — Results Generated")
 
     # ==============================
     # DETERMINE RISK LEVEL
