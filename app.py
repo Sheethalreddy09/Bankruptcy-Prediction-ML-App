@@ -24,7 +24,6 @@ background: radial-gradient(circle at top,#0f2027,#203a43,#2c5364);
 color:white;
 }
 
-/* neon animated header */
 .hero-title{
 font-size:56px;
 font-weight:bold;
@@ -41,7 +40,6 @@ animation: shine 6s linear infinite;
 100%{background-position:300%}
 }
 
-/* glass dashboard cards */
 .glass-card{
 background: rgba(255,255,255,0.08);
 border-radius:16px;
@@ -51,7 +49,6 @@ box-shadow:0 8px 32px rgba(0,0,0,0.35);
 margin-bottom:20px;
 }
 
-/* glowing metric cards */
 .glow-card{
 background: rgba(255,255,255,0.05);
 border-radius:14px;
@@ -66,7 +63,6 @@ transform:translateY(-4px);
 box-shadow:0 0 30px rgba(0,242,254,0.75);
 }
 
-/* download button */
 .stDownloadButton button{
 background-color:#00f2fe;
 color:black;
@@ -161,27 +157,6 @@ if predict:
     st.success("🤖 AI Analysis Complete — Results Generated")
 
     risk_percent = probability * 100
-
-    # --------------------------------------------------
-    # CREATE REPORT DATA
-    # --------------------------------------------------
-
-    report_df = input_data.copy()
-
-    report_df["Bankruptcy Risk (%)"] = round(risk_percent, 2)
-    report_df["Risk Classification"] = risk_class
-    report_df["Model Prediction"] = pred_label
-    report_df["Selected Model"] = model_choice
-
-    # --------------------------------------------------
-    # DOWNLOAD REPORT
-    # --------------------------------------------------
-
-    st.download_button(
-        "📄 Download Risk Report",
-        report_df.to_csv(index=False),
-        "bankruptcy_risk_report.csv"
-    )
 
     if risk_percent < 40:
         risk_class="LOW RISK"
@@ -305,25 +280,24 @@ if predict:
         for r in recs:
             st.write("•",r)
 
-#CREATE REPORT DATA
+# --------------------------------------------------
+# CREATE REPORT DATA
+# --------------------------------------------------
+    report_df = input_data.copy()
 
-report_df = input_data.copy()
-
-report_df["Bankruptcy Risk (%)"] = round(risk_percent, 2)
-report_df["Risk Classification"] = risk_class
-report_df["Model Prediction"] = pred_label
-report_df["Selected Model"] = model_choice
+    report_df["Bankruptcy Risk (%)"] = round(risk_percent,2)
+    report_df["Risk Classification"] = risk_class
+    report_df["Model Prediction"] = pred_label
+    report_df["Selected Model"] = model_choice
 
 # --------------------------------------------------
 # DOWNLOAD REPORT
 # --------------------------------------------------
-
-st.download_button(
-"📄 Download Risk Report",
-report_df.to_csv(index=False),
-"bankruptcy_risk_report.csv",
-"Download prediction results as CSV"
-)
+    st.download_button(
+    "📄 Download Risk Report",
+    report_df.to_csv(index=False),
+    "bankruptcy_risk_report.csv"
+    )
 
 # --------------------------------------------------
 # FOOTER
